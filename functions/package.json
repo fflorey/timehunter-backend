@@ -1,0 +1,25 @@
+{
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "serve": "firebase serve --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+	"lint": "exit 0"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
+    "debug": "~2.6.9",
+    "express": "^4.16.3",
+    "firebase": "^5.0.4",
+    "firebase-admin": "^5.12.1",
+    "firebase-functions": "^1.0.3",
+    "hbs": "~4.0.1",
+    "http-errors": "^1.6.3",
+    "morgan": "^1.9.0"
+  },
+  "private": true
+}

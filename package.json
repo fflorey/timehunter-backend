@@ -1,0 +1,19 @@
+{
+  "name": "timehunter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "firebase": "^5.0.4",
+    "firebase-admin": "^5.12.1",
+    "firebase-functions": "^1.0.4",
+    "lint": "^1.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"lint": "exit 0"
+  },
+  "author": "",
+  "license": "ISC"
+}
