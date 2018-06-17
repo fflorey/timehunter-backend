@@ -9,5 +9,5 @@ Usage of:
 Functions are implemented with help of the express.js framework so you will find all REST-functions under /routes
 
 You need:
-- firebase CLI tools
+- firebase CLI tools (with npm: npm install firebase-admin --global)
 
