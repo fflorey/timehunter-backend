@@ -99,40 +99,25 @@ router.get('/nextpoints/:long/:lat/:userid', (req, res, next) => {
     var userid = req.params.userid;
 
     admin.database().ref('/users/' + userid).once('value').then((snapshot) => {
-        var elements = snapshot.val();
-        for (let index = 0; index < elements.length; index++) {
-            var element = elements[index];
-            const distance = calcDistance(latitude, longitude, element.lat, element.lon, 'K');
-            element.distance = distance;
-            elements[index] = element;
-            console.log('');
-        }
-        elements.sort((a, b) => {
-            return a.distance - b.distance;
-        });
-        // mupltiple calls reduces the array of marks - this must be avoided, if
-        // distance is > 0 for first element in array
-        var slicer = 1;
-        if (elements[0].distance > 0) {
-            slicer = 0;
-        }
-        if ( resultHasOnlyNieten(elements,slicer)) {
-            let notNiete = Math.floor(Math.random()*RETVALUES)+slicer;
+        var elements = purgeElements ( snapshot.val() );
+        // add distance field
+        elements = elements.map ( e => { e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
+        elements.sort((a, b) => { return a.distance - b.distance; });
+        markElementsForPurge ( elements );
+        if (resultHasOnlyNieten(elements)) {
+            let notNiete = Math.floor(Math.random() * RETVALUES);
             elements[notNiete].niete = false;
-            console.log('no niete new: ' + notNiete);
         }
-        // save 
-        admin.database().ref('/users/' + userid).set(elements.slice(slicer)).then(() => {
-            res.status(200);
-            res.send(JSON.stringify(elements.slice(slicer, RETVALUES + slicer)));
-            return;
-        }).catch((err) => {
-            console.error('error: ' + err);
-            res.status(500);
-            res.send({ "status": "error" });
-        });
+        return saveElementsForUser(userid, elements, 0, RETVALUES);
+        // save
+    }).then(result => {
+        res.status(200);
+        res.send(result);
+    }).catch((err) => {
+        console.error(err);
+        res.status(500);
+        res.send(errMessage(err));
     });
-
 })
 
 
@@ -143,49 +128,64 @@ router.get('/startingpoint/:long/:lat/:userid', (req, res, next) => {
     var longitude = req.params.long
     var latitude = req.params.lat;
     var userid = req.params.userid;
-
     admin.database().ref('/marks').once('value').then((snapshot) => {
-        var minimum = -1;
-        var resobj = {};
-        var minimumId = -1;
-        elements = snapshot.val();
-        for (let index = 0; index < elements.length; index++) {
-            var element = elements[index];
-            var lat = element.lat; var lon = element.lon;
-            distance = calcDistance(latitude, longitude, lat, lon, 'K');
-            if (minimum === -1 || distance < minimum) {
-                minimum = distance;
-                resobj = element;
-                minimumId = index;
-                console.log('minimum new: ' + JSON.stringify(resobj) + 'minimum: ' + minimum);
-            }
-            element.visited = false;
-            element.niete = true;
-            element.distance = distance;
-            elements[index] = element;
-        }
-        elements[minimumId].niete = false;
-        // save 
-        admin.database().ref('/users/' + userid).set(elements).then(() => {
-            res.status(200);
-            res.send(JSON.stringify(resobj));
-            return;
-        }).catch((err) => {
-            console.log('error: ' + err);
-            res.status(500);
-            res.send({ "status": "error" });
-        });
-    }).catch((err) => {
+        var elements = reduceMarksOnField ( snapshot.val() );
+        // add distance field
+        elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
+            e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
+        elements.sort((a, b) => { return a.distance - b.distance; });
+        elements[0].niete = false;
+        elements[0].purge = true;
+        return saveElementsForUser(userid, elements, 0, 1);
+    }).then((result) => {
         res.status(200);
-        res.send('hups... error: ' + err);
+        res.send(JSON.stringify(result[0]));
+        return;
+    }).catch((err) => {
+        console.error('Error' + err);
+        res.status(500);
+        res.send(errMessage(err));
     });
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+
+function markElementsForPurge ( elements ) {
+    for (let index = 0; index < RETVALUES; index++) {
+        elements[index].purge = true;
+    }
+    return elements;
+}
+
+function purgeElements ( elements ) {
+    return elements.filter ( e => e.purge !== true );
+}
+
+function reduceMarksOnField ( elements )  {
+    return elements.filter ( e => Math.random() < 0.40);
+}
+
+function errMessage(errorMessage) {
+    return { status: 500, message: JSON.stringify(errorMessage)};
+}
+
+
+// save array (elments) and return elements from this array in range start to end
+function saveElementsForUser(userid, elements, start, end) {
+    console.log(`${start} : end: ${ end } userid: ${userid}`)
+    return new Promise((resolve, reject) => {
+        admin.database().ref('/users/' + userid).set(elements).then(() => {
+            return resolve(elements.slice(start, end));
+        }).catch((err) => {
+            return reject(err);
+        });
+    })
+}
+
 // RETVALUES
-function resultHasOnlyNieten ( elements, startWith ) {
-    for ( index = 0+startWith; index < RETVALUES+startWith; index++ ) {
-        if ( elements[index].niete === false ) {
+function resultHasOnlyNieten(elements) {
+    for (var index = 0; index < RETVALUES; index++) {
+        if (elements[index].niete === false) {
             return false;
         }
     }
@@ -203,7 +203,7 @@ function calcDistance(lat1, lon1, lat2, lon2, unit) {
     dist = dist * 60 * 1.1515
     if (unit == "K") { dist = dist * 1.609344 }
     if (unit == "N") { dist = dist * 0.8684 }
-    if ( dist < 0.001) {
+    if (dist < 0.001) {
         dist = 0;
     }
     return dist
