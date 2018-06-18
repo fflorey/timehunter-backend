@@ -1,0 +1,23 @@
+{
+  "name": "Time Hunter",
+  "short_name": "Time Hunter",
+  "description": "The Geolocation Hunting Game on your phone",
+  "icons": [{
+    "src": "assets/logo_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }, {
+    "src": "assets/logo_128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }, {
+      "src": "assets/logo_64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#343a40"
+}

@@ -1,0 +1,57 @@
+{
+  "configVersion": 1,
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "urls": [
+        "/favicon.ico",
+        "/index.html",
+        "/inline.318b50c57b4eba3d437b.bundle.js",
+        "/main.ad38bbb052d613b031be.bundle.js",
+        "/polyfills.2d896654d931a4d9a559.bundle.js",
+        "/styles.6ebdbed3f3042be16306.bundle.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "urls": [
+        "/assets/icons/TimeHunter_Logo.png",
+        "/assets/icons/clock_icon-icons.com_64879.png",
+        "/assets/icons/logo.png",
+        "/assets/icons/logo_128.png",
+        "/assets/icons/logo_512.png",
+        "/assets/icons/logo_64.png",
+        "/assets/icons/marker_falsch.png",
+        "/assets/icons/marker_richtig.png",
+        "/assets/icons/marker_unbekannt.png",
+        "/assets/music/audio.mp3"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/inline.318b50c57b4eba3d437b.bundle.js": "998c6060446975e566fd17509558ddc68d72eec3",
+    "/assets/icons/TimeHunter_Logo.png": "e8361e05ea5e98aacc3523b074293e378bef9ad4",
+    "/main.ad38bbb052d613b031be.bundle.js": "94ad24c5c556210432f4ed181d63933bc1523577",
+    "/assets/icons/clock_icon-icons.com_64879.png": "83d7aa84a9ed58d079d5b0b58a9122da8e7c4e8c",
+    "/polyfills.2d896654d931a4d9a559.bundle.js": "5f49131c0c147a20f91b1e77814434e0c77bd3dc",
+    "/assets/icons/logo.png": "e83d13a6fa3570e6e51440c4916fb53c87321fc5",
+    "/styles.6ebdbed3f3042be16306.bundle.css": "1e972601f527a90bf8a602a09fec23f6f809fe05",
+    "/assets/icons/logo_128.png": "828b67cd6dab047aa5b92a568c3145a4dcf46b76",
+    "/favicon.ico": "84161b857f5c547e3699ddfbffc6d8d737542e01",
+    "/assets/icons/logo_512.png": "14305c15a1fe1f59a034b52d01f9dd89dd1fff7f",
+    "/index.html": "eec471457b9f1ba0f00b5e86861ffb422b368150",
+    "/assets/icons/logo_64.png": "f4be2e38f9e409b43c913de1d44f2a60337dc7e8",
+    "/assets/icons/marker_falsch.png": "a419957781f30f15f3d47468781d3feefa967c9b",
+    "/assets/icons/marker_richtig.png": "b76209526f17daa895210f2b4581ebcbe8998581",
+    "/assets/icons/marker_unbekannt.png": "b7889d98b77259fec108497998a7bb1422786784",
+    "/assets/music/audio.mp3": "cc3bc85d031c9c0bbe61a51719835db4c613aea8"
+  }
+}
