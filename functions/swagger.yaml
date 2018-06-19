@@ -1,0 +1,189 @@
+swagger: '2.0'
+info:
+  description: >-
+    Definition of the timehunter API, which is needed by timehunter, the cgi hackathon games
+  version: 1.0.0
+  title: timehunter
+  termsOfService: ''
+  contact:
+    email: noreply@cgi.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: cgihunt.firebaseio.com
+
+basePath: /cgihunt
+schemes:
+  - https
+  - http
+paths:
+  /startingpoint/{longitude}/{latitude}/{userid}:
+    get:
+      tags:
+        - gamezone
+      summary: init game for user
+      description: 'Init the game for a user and get the starting position'
+      operationId: spoint
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: longitude
+          in: path
+          description: longitude of current position of user
+          required: true
+          type: string
+        - name: latitude
+          in: path
+          description: latitude of current position of user
+          required: true
+          type: string
+        - name: userid
+          in: path
+          description: id of current user
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Pet object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/Pet'
+      responses:
+        '200':
+          description: operations succeeded
+          schema:
+            $ref: '#/definitions/FieldEntry'
+        '403':
+          description: Unauthorized
+        '500':
+          description: Failure (take a look at the specific error message
+          
+  /nextpoints/{longitude}/{latitude}/{userid}:
+    get:
+      tags:
+        - gamezone
+      summary: get next waypoints
+      description: 'get next possible positions when reaching the next valid position. Should only be called with the position of a niete === false position'
+      operationId: nextpos
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: longitude
+          in: path
+          description: longitude of current position of user
+          required: true
+          type: string
+        - name: latitude
+          in: path
+          description: latitude of current position of user
+          required: true
+          type: string
+        - name: userid
+          in: path
+          description: id of current user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: operations succeeded. Three enties are sent back to caller. One of the position is marked as valid (niete === false)
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/FieldEntry'
+        '403':
+          description: Unauthorized
+        '500':
+          description: Failure (take a look at the specific error message
+
+  /createfield/{longitude}/{latitude}/{userid}:
+    post:
+      tags:
+        - gamezone 
+      summary: create new field
+      description: 'create new field '
+      operationId: createfield
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: longitude
+          in: path
+          description: longitude, which is used to register map
+          required: true
+          type: string
+        - name: latitude
+          in: path
+          description: latitude, which is used to register map
+          required: true
+          type: string
+        - name: name
+          in: path
+          description: name, under which the map will be saved 
+          required: true
+          type: string
+        - name: userid
+          in: path
+          description: id of current user
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: array of positions, which represents the new map
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Position'
+      responses:
+        '200':
+          description: operations succeeded. New field is stored under the given name
+        '403':
+          description: Unauthorized
+        '500':
+          description: Failure (take a look at the specific error message
+
+
+definitions:
+
+  FieldEntry:
+    type: object
+    required:
+      - longitude
+      - latitude
+      - niete
+      - purge
+      - visited
+    properties:
+      longitude:
+        type: number
+        example: 56.382746382321
+      latitude:
+        type: number
+        example: 9.058478372332
+      niete: 
+        type: boolean
+      purge:
+        type: boolean
+      visited: 
+        type: boolean
+  Position:
+    type: object
+    required:
+      - lon
+      - lat
+    properties:
+      lon:
+        type: number
+        example: 56.382746382321
+      lat:
+        type: number
+        example: 9.058478372332
+        
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
