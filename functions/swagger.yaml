@@ -10,19 +10,19 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-host: cgihunt.firebaseio.com
+host: cgihunt.firebaseapp.com
 
-basePath: /cgihunt
+basePath: /timehunter
 schemes:
   - https
   - http
 paths:
-  /startingpoint/{longitude}/{latitude}/{userid}:
+  /startingpoint/{longitude}/{latitude}/{fieldname}/{userid}:
     get:
       tags:
         - gamezone
       summary: init game for user
-      description: 'Init the game for a user and get the starting position'
+      description: 'Init the game for a user and get the first position, from where the user can start the game (the user needs to go there to start the game)'
       operationId: spoint
       consumes:
         - application/json
@@ -33,10 +33,15 @@ paths:
           in: path
           description: longitude of current position of user
           required: true
-          type: string
+          type: number
         - name: latitude
           in: path
           description: latitude of current position of user
+          required: true
+          type: number
+        - name: fieldname
+          in: path
+          description: name of the field the users wants to use
           required: true
           type: string
         - name: userid
@@ -44,12 +49,6 @@ paths:
           description: id of current user
           required: true
           type: string
-        - in: body
-          name: body
-          description: Pet object that needs to be added to the store
-          required: true
-          schema:
-            $ref: '#/definitions/Pet'
       responses:
         '200':
           description: operations succeeded
@@ -149,7 +148,6 @@ paths:
 
 
 definitions:
-
   FieldEntry:
     type: object
     required:
@@ -159,18 +157,23 @@ definitions:
       - purge
       - visited
     properties:
-      longitude:
+      lat:
         type: number
         example: 56.382746382321
-      latitude:
+      lon:
         type: number
         example: 9.058478372332
+      visited: 
+        type: boolean
+        example: false
       niete: 
         type: boolean
       purge:
         type: boolean
-      visited: 
-        type: boolean
+      distance:
+        type: number
+        example: 0.0331134
+
   Position:
     type: object
     required:
