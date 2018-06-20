@@ -70,21 +70,6 @@ const validateFirebaseIdToken = (req, res, next) => {
     });
 };
 
-router.use(cors);
-router.use(cookieParser);
-// router.use(validateFirebaseIdToken);
-/* GET users listing. */
-router.get('/demo/:long/:lat', (req, res, next) => {
-    //console.log('token: ' + JSON.stringify(req.user));
-    //    var currentUser = req.user.user_id;
-    //  console.log('readdb -> user: ' + currentUser);
-    var longitude = req.params.long;
-    var latitude = req.params.lat;
-
-    res.send({ lat: 50.2, long: 30.6, niete: false });
-
-});
-
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -100,7 +85,7 @@ router.get('/nextpoints/:long/:lat/:userid', (req, res, next) => {
 
     admin.database().ref('/users/' + userid).once('value').then((snapshot) => {
         var elements = purgeElements ( snapshot.val() );
-        // add distance field
+        // update distance field
         elements = elements.map ( e => { e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
         elements.sort((a, b) => { return a.distance - b.distance; });
         markElementsForPurge ( elements );
@@ -109,7 +94,6 @@ router.get('/nextpoints/:long/:lat/:userid', (req, res, next) => {
             elements[notNiete].niete = false;
         }
         return saveElementsForUser(userid, elements, 0, RETVALUES);
-        // save
     }).then(result => {
         res.status(200);
         res.send(result);
@@ -124,13 +108,101 @@ router.get('/nextpoints/:long/:lat/:userid', (req, res, next) => {
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
-router.get('/startingpoint/:long/:lat/:userid', (req, res, next) => {
+router.post('/writeplayzone/:long/:lat/:name/:userid', (req, res, next) => {
+    var longitude = req.params.long
+    var latitude = req.params.lat;
+    var userid = req.params.userid;
+    var name = req.params.name;
+    const body = req.body;
+    console.log('aha: ' + JSON.stringify(body));
+    let newMap = body;
+    if (  ! Array.isArray(newMap) ) {
+        res.status(500);
+        res.send(errMessage('error # body must be an  array'))
+        return;
+    }
+    storeNewPlayzone ( userid, name, longitude, latitude, newMap ).then (result => {
+        console.log('result: ' + result);
+        res.status(200);
+        res.send(result);
+    }).catch( err => {
+        console.error('error: ' + err);
+        res.status(500);
+        res.send(err);
+    })
+});
+
+router.use(cors);
+router.use(cookieParser);
+// router.use(validateFirebaseIdTok
+router.put('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
+    var longitude = req.params.long
+    var latitude = req.params.lat;
+    var userid = req.params.userid;
+    var name = req.params.name;
+    const body = req.body;
+    console.log('aha: ' + JSON.stringify(body));
+    let newMap = body;
+    if (  ! Array.isArray(newMap) ) {
+        res.status(500);
+        res.send(errMessage('error # body must be an  array'))
+        return;
+    }
+    isMapNameAvailable(name).then( result => {
+        if ( result === true ) {
+            return storeNewPlayzone ( userid, name, longitude, latitude, newMap );
+        } else {
+            throw 'error # name allready taken (use writeplayzone to overwrite)';
+        }
+    }).then (result => {
+        console.log('result: ' + result);
+        res.status(200);
+        res.send(result);
+    }).catch( err => {
+        console.error('error: ' + err);
+        res.status(500);
+        res.send(err);
+    })
+});
+
+router.use(cors);
+router.use(cookieParser);
+// router.use(validateFirebaseIdTok
+router.get('/startingpoint2/:long/:lat/:userid', (req, res, next) => {
     var longitude = req.params.long
     var latitude = req.params.lat;
     var userid = req.params.userid;
     admin.database().ref('/marks').once('value').then((snapshot) => {
         var elements = reduceMarksOnField ( snapshot.val() );
-        // add distance field
+        // add fields
+        elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
+            e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
+        elements.sort((a, b) => { return a.distance - b.distance; });
+        elements[0].niete = false;
+        elements[0].purge = true;
+        return saveElementsForUser(userid, elements, 0, 1);
+    }).then((result) => {
+        res.status(200);
+        res.send(JSON.stringify(result[0]));
+        return;
+    }).catch((err) => {
+        console.error('Error' + err);
+        res.status(500);
+        res.send(errMessage(err));
+    });
+});
+
+
+router.use(cors);
+router.use(cookieParser);
+// router.use(validateFirebaseIdTok
+router.get('/startingpoint/:long/:lat/:fieldname/:userid', (req, res, next) => {
+    var longitude = req.params.long
+    var latitude = req.params.lat;
+    var userid = req.params.userid;
+    admin.database().ref('/marks').once('value').then((snapshot) => {
+        var elements = reduceMarksOnField ( snapshot.val() );
+        // add fields
         elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
             e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
         elements.sort((a, b) => { return a.distance - b.distance; });
@@ -149,6 +221,37 @@ router.get('/startingpoint/:long/:lat/:userid', (req, res, next) => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+
+function storeNewPlayzone ( userid, name, longitude, latitude, newMap ) {
+    return new Promise( (resolve, reject) => {
+        newMap.name = name;
+        newMap.longitude = longitude;
+        newMap.latitude = latitude;
+        newMap.userid = userid;
+        admin.database().ref('/fields/'+name).set(newMap).then((result) => {
+            return resolve(true);
+        }).catch ( (err) => {
+            console.error('error: ' + err);
+            return reject(err);
+        });
+    });    
+}
+
+function isMapNameAvailable ( name ) {
+    return new Promise( (resolve, reject) => {
+        admin.database().ref('/fields/'+name).once('value').then((snapshot) => {
+            console.log('snapshot: ' + JSON.stringify(snapshot));
+            if ( snapshot.val() == null || snapshot.val().length === 0 ) {
+                return resolve(true);
+            } else {
+                return resolve(false);
+            }
+        }).catch ( (err) => {
+            console.error('error: ' + err);
+            return reject(err);
+        });
+    });
+}
 
 function markElementsForPurge ( elements ) {
     for (let index = 0; index < RETVALUES; index++) {
@@ -169,20 +272,6 @@ function errMessage(errorMessage) {
     return { status: 500, message: JSON.stringify(errorMessage)};
 }
 
-
-// save array (elments) and return elements from this array in range start to end
-function saveElementsForUser(userid, elements, start, end) {
-    console.log(`${start} : end: ${ end } userid: ${userid}`)
-    return new Promise((resolve, reject) => {
-        admin.database().ref('/users/' + userid).set(elements).then(() => {
-            return resolve(elements.slice(start, end));
-        }).catch((err) => {
-            return reject(err);
-        });
-    })
-}
-
-// RETVALUES
 function resultHasOnlyNieten(elements) {
     for (var index = 0; index < RETVALUES; index++) {
         if (elements[index].niete === false) {
@@ -207,6 +296,17 @@ function calcDistance(lat1, lon1, lat2, lon2, unit) {
         dist = 0;
     }
     return dist
+}
+
+function saveElementsForUser(userid, elements, start, end) {
+    console.log(`${start} : end: ${ end } userid: ${userid}`)
+    return new Promise((resolve, reject) => {
+        admin.database().ref('/users/' + userid).set(elements).then(() => {
+            return resolve(elements.slice(start, end));
+        }).catch((err) => {
+            return reject(err);
+        });
+    })
 }
 
 ////////////////////////////////////////////////////////////////////////////////

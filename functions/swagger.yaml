@@ -1,7 +1,8 @@
 swagger: '2.0'
 info:
   description: >-
-    Definition of the timehunter API, which is needed by timehunter, the cgi hackathon games
+    Definition of the timehunter API, which is needed by timehunter, the cgi
+    hackathon games
   version: 1.0.0
   title: timehunter
   termsOfService: ''
@@ -11,18 +12,19 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 host: cgihunt.firebaseapp.com
-
 basePath: /timehunter
 schemes:
   - https
   - http
 paths:
-  /startingpoint/{longitude}/{latitude}/{fieldname}/{userid}:
+  '/startingpoint/{longitude}/{latitude}/{fieldname}/{userid}':
     get:
       tags:
         - gamezone
       summary: init game for user
-      description: 'Init the game for a user and get the first position, from where the user can start the game (the user needs to go there to start the game)'
+      description: >-
+        Init the game for a user and get the first position, from where the user
+        can start the game (the user needs to go there to start the game)
       operationId: spoint
       consumes:
         - application/json
@@ -58,13 +60,14 @@ paths:
           description: Unauthorized
         '500':
           description: Failure (take a look at the specific error message
-          
-  /nextpoints/{longitude}/{latitude}/{userid}:
+  '/nextpoints/{longitude}/{latitude}/{userid}':
     get:
       tags:
         - gamezone
       summary: get next waypoints
-      description: 'get next possible positions when reaching the next valid position. Should only be called with the position of a niete === false position'
+      description: >-
+        get next possible positions when reaching the next valid position.
+        Should only be called with the position of a niete === false position
       operationId: nextpos
       consumes:
         - application/json
@@ -88,7 +91,9 @@ paths:
           type: string
       responses:
         '200':
-          description: operations succeeded. Three enties are sent back to caller. One of the position is marked as valid (niete === false)
+          description: >-
+            operations succeeded. Three enties are sent back to caller. One of
+            the position is marked as valid (niete === false)
           schema:
             type: array
             items:
@@ -97,11 +102,10 @@ paths:
           description: Unauthorized
         '500':
           description: Failure (take a look at the specific error message
-
-  /createfield/{longitude}/{latitude}/{userid}:
+  '/createnewplayzone/{longitude}/{latitude}/{name}/{userid}':
     post:
       tags:
-        - gamezone 
+        - gamezone
       summary: create new field
       description: 'create new field '
       operationId: createfield
@@ -112,17 +116,17 @@ paths:
       parameters:
         - name: longitude
           in: path
-          description: longitude, which is used to register map
+          description: 'longitude, which is used to register map'
           required: true
           type: string
         - name: latitude
           in: path
-          description: latitude, which is used to register map
+          description: 'latitude, which is used to register map'
           required: true
           type: string
         - name: name
           in: path
-          description: name, under which the map will be saved 
+          description: 'name, under which the map will be saved'
           required: true
           type: string
         - name: userid
@@ -132,7 +136,7 @@ paths:
           type: string
         - in: body
           name: body
-          description: array of positions, which represents the new map
+          description: 'array of positions, which represents the new map'
           required: true
           schema:
             type: array
@@ -145,8 +149,53 @@ paths:
           description: Unauthorized
         '500':
           description: Failure (take a look at the specific error message
-
-
+  '/writeplayzone/{longitude}/{latitude}/{name}/{userid}':
+      post:
+        tags:
+          - gamezone
+        summary: create new field
+        description: 'create new field, but name mustbe unique / return error if field already exists'
+        operationId: writezone
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: longitude
+            in: path
+            description: 'longitude, which is used to register map'
+            required: true
+            type: string
+          - name: latitude
+            in: path
+            description: 'latitude, which is used to register map'
+            required: true
+            type: string
+          - name: name
+            in: path
+            description: 'name, under which the map will be saved'
+            required: true
+            type: string
+          - name: userid
+            in: path
+            description: id of current user
+            required: true
+            type: string
+          - in: body
+            name: body
+            description: 'array of positions, which represents the new map'
+            required: true
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Position'
+        responses:
+          '200':
+            description: operations succeeded. New field is stored under the given name
+          '403':
+            description: Unauthorized
+          '500':
+            description: Failure (take a look at the specific error message
 definitions:
   FieldEntry:
     type: object
@@ -163,17 +212,16 @@ definitions:
       lon:
         type: number
         example: 9.058478372332
-      visited: 
+      visited:
         type: boolean
         example: false
-      niete: 
+      niete:
         type: boolean
       purge:
         type: boolean
       distance:
         type: number
         example: 0.0331134
-
   Position:
     type: object
     required:
@@ -186,7 +234,6 @@ definitions:
       lat:
         type: number
         example: 9.058478372332
-        
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
