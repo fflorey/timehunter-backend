@@ -135,13 +135,30 @@ router.post('/writeplayzone/:long/:lat/:name/:userid', (req, res, next) => {
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
+router.get('/getzoneinfos/:long/:lat/:range/:userid', (req, res, next) => {
+    const longitude = req.params.long
+    const latitude = req.params.lat;
+    const range = req.params.range;
+    const userid = req.params.userid;
+
+    getZones(longitude,latitude,range).then (result => {        
+        res.status(200).send(result);
+    }).catch( err => {
+        console.log('error!');
+        res.status(500).send(err);
+    })
+});
+
+
+router.use(cors);
+router.use(cookieParser);
+// router.use(validateFirebaseIdTok
 router.put('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
     var longitude = req.params.long
     var latitude = req.params.lat;
     var userid = req.params.userid;
     var name = req.params.name;
     const body = req.body;
-    console.log('aha: ' + JSON.stringify(body));
     let newMap = body;
     if (  ! Array.isArray(newMap) ) {
         res.status(500);
@@ -199,8 +216,9 @@ router.use(cookieParser);
 router.get('/startingpoint/:long/:lat/:fieldname/:userid', (req, res, next) => {
     var longitude = req.params.long
     var latitude = req.params.lat;
+    var fieldname = req.params.fieldname;
     var userid = req.params.userid;
-    admin.database().ref('/marks').once('value').then((snapshot) => {
+    admin.database().ref('/zones/'+fieldname+'/map').once('value').then((snapshot) => {
         var elements = reduceMarksOnField ( snapshot.val() );
         // add fields
         elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
@@ -222,13 +240,36 @@ router.get('/startingpoint/:long/:lat/:fieldname/:userid', (req, res, next) => {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+function getZones ( longitude, latitude, range ) {
+    return new Promise( (resolve, reject) => {
+        admin.database().ref('/zones/').once('value').then((snapshot) => {
+            var result = [];
+            const allfields = snapshot.val();
+            for (const key in allfields) {
+                if (allfields.hasOwnProperty(key)) {
+                    const element = allfields[key];
+                    const distance = calcDistance(latitude,longitude,element.latitude,element.longitude, 'K');
+                    if ( distance <= range )  {
+                        result.push({ name: element.name, distance: distance });
+                    }
+                }
+            }
+            return resolve(result);
+        }).catch ( err => {
+            return reject(errMessage(err));
+        });
+    });    
+}
+
 function storeNewPlayzone ( userid, name, longitude, latitude, newMap ) {
     return new Promise( (resolve, reject) => {
-        newMap.name = name;
-        newMap.longitude = longitude;
-        newMap.latitude = latitude;
-        newMap.userid = userid;
-        admin.database().ref('/fields/'+name).set(newMap).then((result) => {
+        let zone = {};
+        zone.name = name;
+        zone.longitude = longitude;
+        zone.latitude = latitude;
+        zone.userid = userid;
+        zone.map = newMap;
+        admin.database().ref('/zones/'+name).set(zone).then((result) => {
             return resolve(true);
         }).catch ( (err) => {
             console.error('error: ' + err);
@@ -239,7 +280,7 @@ function storeNewPlayzone ( userid, name, longitude, latitude, newMap ) {
 
 function isMapNameAvailable ( name ) {
     return new Promise( (resolve, reject) => {
-        admin.database().ref('/fields/'+name).once('value').then((snapshot) => {
+        admin.database().ref('/zones/'+name).once('value').then((snapshot) => {
             console.log('snapshot: ' + JSON.stringify(snapshot));
             if ( snapshot.val() == null || snapshot.val().length === 0 ) {
                 return resolve(true);
