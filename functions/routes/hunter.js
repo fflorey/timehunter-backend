@@ -14,7 +14,7 @@ admin.initializeApp(functions.config().firebase);
 
 
 firebase.initializeApp({
-    apiKey: 'AIzaSyDUAyjvms6r6CWiy2C3BX_HH1mqzuoz-YI',
+    apiKey: 'USE_YOUR_API_KEY',
     authDomain: 'cgihunt.firebaseapp.com',
     databaseURL: 'https://cgihunt.firebaseio.com',
     projectId: 'cgihunt',
