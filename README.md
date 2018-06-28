@@ -11,3 +11,5 @@ Functions are implemented with help of the express.js framework so you will find
 You need:
 - firebase CLI tools (with npm: npm install firebase-admin --global)
 
+go ahead!
+
