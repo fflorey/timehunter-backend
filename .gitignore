@@ -2,6 +2,7 @@ node_modules
 **/node_modules
 .vscode
 .secrets
+.runtimeconfig.json
 tmp
 .tmp
 .old
