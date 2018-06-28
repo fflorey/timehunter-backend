@@ -14,15 +14,13 @@ admin.initializeApp(functions.config().firebase);
 
 
 firebase.initializeApp({
-    apiKey: "AIzaSyDUAyjvms6r6CWiy2C3BX_HH1mqzuoz-YI",
-    authDomain: "cgihunt.firebaseapp.com",
-    databaseURL: "https://cgihunt.firebaseio.com",
-    projectId: "cgihunt",
-    storageBucket: "cgihunt.appspot.com",
-    messagingSenderId: "415988983785"
+    apiKey: 'AIzaSyDUAyjvms6r6CWiy2C3BX_HH1mqzuoz-YI',
+    authDomain: 'cgihunt.firebaseapp.com',
+    databaseURL: 'https://cgihunt.firebaseio.com',
+    projectId: 'cgihunt',
+    storageBucket: 'cgihunt.appspot.com',
+    messagingSenderId: '415988983785'
 });
-
-var defaultDatabase = firebase.database();
 
 // Get the Auth service for the default app
 
@@ -102,14 +100,14 @@ router.get('/nextpoints/:long/:lat/:userid', (req, res, next) => {
         res.status(500);
         res.send(errMessage(err));
     });
-})
+});
 
 
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
 router.post('/writeplayzone/:long/:lat/:name/:userid', (req, res, next) => {
-    var longitude = req.params.long
+    var longitude = req.params.long;
     var latitude = req.params.lat;
     var userid = req.params.userid;
     var name = req.params.name;
@@ -118,7 +116,7 @@ router.post('/writeplayzone/:long/:lat/:name/:userid', (req, res, next) => {
     let newMap = body;
     if (  ! Array.isArray(newMap) ) {
         res.status(500);
-        res.send(errMessage('error # body must be an  array'))
+        res.send(errMessage('error # body must be an  array'));
         return;
     }
     storeNewPlayzone ( userid, name, longitude, latitude, newMap ).then (result => {
@@ -129,14 +127,14 @@ router.post('/writeplayzone/:long/:lat/:name/:userid', (req, res, next) => {
         console.error('error: ' + err);
         res.status(500);
         res.send(err);
-    })
+    });
 });
 
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
 router.get('/getzoneinfos/:long/:lat/:range/:userid', (req, res, next) => {
-    const longitude = req.params.long
+    const longitude = req.params.long;
     const latitude = req.params.lat;
     const range = req.params.range;
     const userid = req.params.userid;
@@ -146,15 +144,16 @@ router.get('/getzoneinfos/:long/:lat/:range/:userid', (req, res, next) => {
     }).catch( err => {
         console.log('error!');
         res.status(500).send(err);
-    })
+    });
 });
+
 
 
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
-router.put('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
-    var longitude = req.params.long
+router.post('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
+    var longitude = req.params.long;
     var latitude = req.params.lat;
     var userid = req.params.userid;
     var name = req.params.name;
@@ -162,7 +161,7 @@ router.put('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
     let newMap = body;
     if (  ! Array.isArray(newMap) ) {
         res.status(500);
-        res.send(errMessage('error # body must be an  array'))
+        res.send(errMessage('error # body must be an  array'));
         return;
     }
     isMapNameAvailable(name).then( result => {
@@ -179,46 +178,18 @@ router.put('/createnewplayzone/:long/:lat/:name/:userid', (req, res, next) => {
         console.error('error: ' + err);
         res.status(500);
         res.send(err);
-    })
-});
-
-router.use(cors);
-router.use(cookieParser);
-// router.use(validateFirebaseIdTok
-router.get('/startingpoint2/:long/:lat/:userid', (req, res, next) => {
-    var longitude = req.params.long
-    var latitude = req.params.lat;
-    var userid = req.params.userid;
-    admin.database().ref('/marks').once('value').then((snapshot) => {
-        var elements = reduceMarksOnField ( snapshot.val() );
-        // add fields
-        elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
-            e.distance =  calcDistance(latitude, longitude, e.lat, e.lon, 'K'); return e; } );
-        elements.sort((a, b) => { return a.distance - b.distance; });
-        elements[0].niete = false;
-        elements[0].purge = true;
-        return saveElementsForUser(userid, elements, 0, 1);
-    }).then((result) => {
-        res.status(200);
-        res.send(JSON.stringify(result[0]));
-        return;
-    }).catch((err) => {
-        console.error('Error' + err);
-        res.status(500);
-        res.send(errMessage(err));
     });
 });
-
 
 router.use(cors);
 router.use(cookieParser);
 // router.use(validateFirebaseIdTok
 router.get('/startingpoint/:long/:lat/:fieldname/:userid', (req, res, next) => {
-    var longitude = req.params.long
+    var longitude = req.params.long;
     var latitude = req.params.lat;
     var fieldname = req.params.fieldname;
     var userid = req.params.userid;
-    admin.database().ref('/zones/'+fieldname+'/map').once('value').then((snapshot) => {
+    getMapOfZone (fieldname).then ( snapshot =>  {
         var elements = reduceMarksOnField ( snapshot.val() );
         // add fields
         elements = elements.map ( e => { e.visited =  false; e.niete = true; e.purge = false; 
@@ -255,6 +226,20 @@ function getZones ( longitude, latitude, range ) {
                 }
             }
             return resolve(result);
+        }).catch ( err => {
+            return reject(errMessage(err));
+        });
+    });    
+}
+
+function getMapOfZone ( name ) {
+    return new Promise( (resolve, reject) => {
+        admin.database().ref('/zones/' +name+'/map').once('value').then((snapshot) => {
+            var result = snapshot.val();
+            if ( result == undefined || result == null ) {
+                return reject('error # no data for zone "'+name+'" found.');
+            }
+            return resolve(snapshot);
         }).catch ( err => {
             return reject(errMessage(err));
         });
@@ -323,38 +308,40 @@ function resultHasOnlyNieten(elements) {
 }
 
 function calcDistance(lat1, lon1, lat2, lon2, unit) {
-    var radlat1 = Math.PI * lat1 / 180
-    var radlat2 = Math.PI * lat2 / 180
-    var theta = lon1 - lon2
-    var radtheta = Math.PI * theta / 180
+    var radlat1 = Math.PI * lat1 / 180;
+    var radlat2 = Math.PI * lat2 / 180;
+    var theta = lon1 - lon2;
+    var radtheta = Math.PI * theta / 180;
     var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-    dist = Math.acos(dist)
-    dist = dist * 180 / Math.PI
-    dist = dist * 60 * 1.1515
-    if (unit == "K") { dist = dist * 1.609344 }
-    if (unit == "N") { dist = dist * 0.8684 }
+    dist = Math.acos(dist);
+    dist = dist * 180 / Math.PI;
+    dist = dist * 60 * 1.1515;
+    if (unit == 'K') { dist = dist * 1.609344; }
+    if (unit == 'N') { dist = dist * 0.8684; }
     if (dist < 0.001) {
         dist = 0;
     }
-    return dist
+    return dist;
 }
 
 function saveElementsForUser(userid, elements, start, end) {
-    console.log(`${start} : end: ${ end } userid: ${userid}`)
+    console.log(`${start} : end: ${ end } userid: ${userid}`);
     return new Promise((resolve, reject) => {
         admin.database().ref('/users/' + userid).set(elements).then(() => {
             return resolve(elements.slice(start, end));
         }).catch((err) => {
             return reject(err);
         });
-    })
+    });
 }
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // for testing
 
 router.get('/helloworld', (req, res, next) => {
-    res.send('hello world');
+    res.send('hello world 3');
 });
 
 module.exports = router;

@@ -17,6 +17,48 @@ schemes:
   - https
   - http
 paths:
+  '/getzoneinfos/{longitude}/{latitude}/{range}/{userid}':
+    get:
+      tags:
+        - gamezone
+      summary: get zones around user
+      description: >-
+        get all zones around the given location (long/lat) within the specified range (in km!)
+      operationId: zoneinfos
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: longitude
+          in: path
+          description: longitude of current position of user
+          required: true
+          type: number
+        - name: latitude
+          in: path
+          description: latitude of current position of user
+          required: true
+          type: number
+        - name: range
+          in: path
+          description: range in which to search for zones
+          required: true
+          type: number
+        - name: userid
+          in: path
+          description: id of current user
+          required: true
+          type: string
+      responses:
+        '200':
+          description: operations succeeded
+          schema:
+            $ref: '#/definitions/FieldEntry'
+        '403':
+          description: Unauthorized
+        '500':
+          description: Failure (take a look at the specific error message
   '/startingpoint/{longitude}/{latitude}/{fieldname}/{userid}':
     get:
       tags:
