@@ -9,10 +9,13 @@
     "firebase-functions": "^1.0.4",
     "lint": "^1.1.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^5.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "exit 0"
+    "lint": "exit 0",
+    "build": "npm install && cd functions && npm install && cd .."
   },
   "author": "",
   "license": "ISC"
