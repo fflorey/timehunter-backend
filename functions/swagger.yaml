@@ -196,6 +196,49 @@ paths:
             description: Unauthorized
           '500':
             description: Failure (take a look at the specific error message
+  '/getzones/{longitude}/{latitude}/{distance}/{userid}':
+      post:
+        tags:
+          - gamezone
+        summary: create new field
+        description: 'get zones within a range of distance (kilometers)'
+        operationId: getzones
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - name: longitude
+            in: path
+            description: 'longitude, which is used to register map'
+            required: true
+            type: number
+          - name: latitude
+            in: path
+            description: 'latitude, which is used to register map'
+            required: true
+            type: number
+          - name: distance
+            in: path
+            description: 'name, under which the map will be saved'
+            required: true
+            type: number
+          - name: userid
+            in: path
+            description: id of current user
+            required: true
+            type: string
+        responses:
+          '200':
+            description: operation succeeded. return array of zones in distance
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Gamezone'
+          '403':
+            description: Unauthorized
+          '500':
+            description: Failure (take a look at the specific error message
 definitions:
   FieldEntry:
     type: object
@@ -222,6 +265,22 @@ definitions:
       distance:
         type: number
         example: 0.0331134
+  Gamezone:
+    type: object
+    required:
+      - lon
+      - lat
+      - name
+    properties:
+      lon:
+        type: number
+        example: 56.382746382321
+      lat:
+        type: number
+        example: 9.058478372332
+      name:
+        type: string
+        example: "extraordinary map crystal city"
   Position:
     type: object
     required:
